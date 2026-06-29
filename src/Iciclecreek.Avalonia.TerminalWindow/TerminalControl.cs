@@ -59,6 +59,17 @@ namespace Iciclecreek.Terminal
                 nameof(Options),
                 defaultValue: null);
 
+        public static readonly StyledProperty<bool> CloseProcessOnDetachProperty =
+            AvaloniaProperty.Register<TerminalControl, bool>(
+                nameof(CloseProcessOnDetach),
+                defaultValue: true);
+
+        public bool CloseProcessOnDetach
+        {
+            get => GetValue(CloseProcessOnDetachProperty);
+            set => SetValue(CloseProcessOnDetachProperty, value);
+        }
+        
         public event EventHandler<ProcessExitedEventArgs>? ProcessExited;
 
         /// <summary>
@@ -299,6 +310,8 @@ namespace Iciclecreek.Terminal
                 _terminalView.ProcessExited += OnTerminalViewProcessExited;
                 SetCurrentDirectory(_terminalView.CurrentDirectory);
                 // (no window event hooking needed)
+                
+                _terminalView.Bind(TerminalView.CloseProcessOnDetachProperty, this.GetObservable(CloseProcessOnDetachProperty));
             }
         }
 

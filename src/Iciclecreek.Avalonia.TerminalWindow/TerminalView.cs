@@ -770,6 +770,17 @@ namespace Iciclecreek.Terminal
             get => GetValue(OptionsProperty);
             set => SetValue(OptionsProperty, value);
         }
+        
+        public static readonly StyledProperty<bool> CloseProcessOnDetachProperty =
+            AvaloniaProperty.Register<TerminalView, bool>(
+                nameof(CloseProcessOnDetach),
+                defaultValue: true);
+
+        public bool CloseProcessOnDetach
+        {
+            get => GetValue(CloseProcessOnDetachProperty);
+            set => SetValue(CloseProcessOnDetachProperty, value);
+        }
 
         protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
         {
@@ -858,7 +869,7 @@ namespace Iciclecreek.Terminal
             _terminal.DirectoryChanged -= OnTerminalDirectoryChanged;
             _terminal.WindowInfoRequested -= OnTerminalWindowInfoRequested;
 
-            if (!_suppressCleanupOnDetach)
+            if (CloseProcessOnDetach && !_suppressCleanupOnDetach)
                 CleanupProcess();
         }
 
