@@ -6,6 +6,7 @@ namespace Iciclecreek.Avalonia.Terminal
 {
     public static class BufferCellExtensions
     {
+        public static ConsolePalette ActivePalette { get; set; } = ConsolePalette.CreateDefault();
 
         public static FontWeight GetFontWeight(this BufferCell cell)
         {
@@ -99,94 +100,15 @@ namespace Iciclecreek.Avalonia.Terminal
             
             return PalleteToColor(color, isBackground);
         }
-
-        private static readonly Color[] _xtermFgPalette = InitializeFgPalette();
-        private static readonly Color[] _xtermBgPalette = InitializeBgPalette();
-
-        private static Color[] InitializeFgPalette()
-        {
-            var palette = new Color[256];
-            
-            palette[0] = Color.FromRgb(30, 30, 46);       // Black
-            palette[1] = Color.FromRgb(241, 76, 76);      // Red
-            palette[2] = Color.FromRgb(31, 186, 100);     // Green   
-            palette[3] = Color.FromRgb(245, 189, 78);     // Yellow  
-            palette[4] = Color.FromRgb(59, 142, 234);     // Blue    
-            palette[5] = Color.FromRgb(238, 100, 238);    // Magenta 
-            palette[6] = Color.FromRgb(0, 197, 202);      // Cyan    
-            palette[7] = Color.FromRgb(238, 238, 238);    // White   
-
-            palette[8] = Color.FromRgb(75, 81, 98);       // Bright Black
-            palette[9] = Color.FromRgb(255, 107, 107);    // Bright Red
-            palette[10] = Color.FromRgb(99, 230, 190);    // Bright Green
-            palette[11] = Color.FromRgb(255, 212, 59);    // Bright Yellow
-            palette[12] = Color.FromRgb(116, 192, 252);   // Bright Blue
-            palette[13] = Color.FromRgb(228, 190, 254);   // Bright Magenta
-            palette[14] = Color.FromRgb(150, 242, 244);   // Bright Cyan
-            palette[15] = Color.FromRgb(255, 255, 255);   // Bright White
-
-            FillRemainingPalette(palette);
-            return palette;
-        }
-
-        private static Color[] InitializeBgPalette()
-        {
-            var palette = new Color[256];
-            
-            palette[0] = Color.FromRgb(15, 15, 22);
-            palette[1] = Color.FromRgb(120, 30, 40);
-            palette[2] = Color.FromRgb(15, 70, 35);
-            palette[3] = Color.FromRgb(90, 70, 10);
-            palette[4] = Color.FromRgb(15, 50, 100);
-            palette[5] = Color.FromRgb(70, 25, 90);
-            palette[6] = Color.FromRgb(15, 75, 80);
-            palette[7] = Color.FromRgb(130, 140, 160);
-
-            palette[8] = Color.FromRgb(45, 45, 60);
-            palette[9] = Color.FromRgb(160, 40, 50);
-            palette[10] = Color.FromRgb(30, 110, 50);
-            palette[11] = Color.FromRgb(140, 110, 20);
-            palette[12] = Color.FromRgb(30, 80, 150);
-            palette[13] = Color.FromRgb(110, 45, 140);
-            palette[14] = Color.FromRgb(25, 115, 120);
-            palette[15] = Color.FromRgb(170, 180, 200);
-
-            FillRemainingPalette(palette);
-            return palette;
-        }
-
-        private static void FillRemainingPalette(Color[] palette)
-        {
-            // 16-231: 216 color cube (6x6x6)
-            int index = 16;
-            for (int r = 0; r < 6; r++)
-            {
-                for (int g = 0; g < 6; g++)
-                {
-                    for (int b = 0; b < 6; b++)
-                    {
-                        byte rv = (byte)(r > 0 ? r * 40 + 55 : 0);
-                        byte gv = (byte)(g > 0 ? g * 40 + 55 : 0);
-                        byte bv = (byte)(b > 0 ? b * 40 + 55 : 0);
-                        palette[index++] = Color.FromRgb(rv, gv, bv);
-                    }
-                }
-            }
-
-            // 232-255: Grayscale ramp
-            for (int i = 0; i < 24; i++)
-            {
-                byte gray = (byte)(8 + i * 10);
-                palette[232 + i] = Color.FromRgb(gray, gray, gray);
-            }
-        }
-
+        
         private static Color PalleteToColor(int paletteIndex, bool isBackground)
         {
             if (paletteIndex < 0 || paletteIndex >= 256)
                 return Colors.White;
 
-            return isBackground ? _xtermBgPalette[paletteIndex] : _xtermFgPalette[paletteIndex];
+            return isBackground 
+                ? ActivePalette.BgPalette[paletteIndex] 
+                : ActivePalette.FgPalette[paletteIndex];
         }
     }
 }
