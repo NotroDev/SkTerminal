@@ -12,8 +12,8 @@ namespace Iciclecreek.Terminal
     /// </summary>
     public static class TerminalRenderThrottle
     {
-        // Target frame rate (30 FPS = 33 ms)
-        private static readonly TimeSpan FrameInterval = TimeSpan.FromMilliseconds(33);
+        // Target frame rate
+        private static readonly TimeSpan FrameInterval = TimeSpan.FromMilliseconds(8);
 
         // Controls waiting to be invalidated
         private static readonly HashSet<Control> Pending = new();
