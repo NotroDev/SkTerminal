@@ -424,6 +424,8 @@ namespace Iciclecreek.Terminal
             Loaded += OnLoaded;
             Unloaded += OnUnloaded;
             TextInputMethodClientRequested += OnTextInputMethodClientRequested;
+            
+            RegisterActiveView(this);
         }
 
         protected override void OnInitialized()
@@ -819,6 +821,8 @@ namespace Iciclecreek.Terminal
             _cursorBlinkTimer.Stop();
             _isSelecting = false;
             _pendingSelectionStart = null;
+            
+            UnregisterActiveView(this);
         }
 
         /// <summary>
@@ -3067,5 +3071,69 @@ namespace Iciclecreek.Terminal
 
         #endregion
 
+        #region Live Color Refresh Support
+
+        private static readonly List<WeakReference<TerminalView>> _activeViews = new();
+
+        private static void RegisterActiveView(TerminalView view)
+        {
+            lock (_activeViews)
+            {
+                _activeViews.Add(new WeakReference<TerminalView>(view));
+            }
+        }
+
+        private static void UnregisterActiveView(TerminalView view)
+        {
+            lock (_activeViews)
+            {
+                _activeViews.RemoveAll(wr => !wr.TryGetTarget(out var target) || target == view);
+            }
+        }
+
+        /// <summary>
+        /// Clears the rendering cache for all active TerminalView instances.
+        /// </summary>
+        public static void ClearAllCaches()
+        {
+            lock (_activeViews)
+            {
+                for (int i = _activeViews.Count - 1; i >= 0; i--)
+                {
+                    if (_activeViews[i].TryGetTarget(out var view))
+                    {
+                        view.ClearCache();
+                    }
+                    else
+                    {
+                        _activeViews.RemoveAt(i);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Clears the rendering cache for this TerminalView instance.
+        /// </summary>
+        public void ClearCache()
+        {
+            lock (_terminalLock)
+            {
+                if (_terminal?.Buffer != null)
+                {
+                    for (int i = 0; i < _terminal.Buffer.Length; i++)
+                    {
+                        var line = _terminal.Buffer.GetLine(i);
+                        if (line != null)
+                        {
+                            line.Cache = null;
+                        }
+                    }
+                }
+            }
+            this.RequestInvalidate();
+        }
+
+        #endregion
     }
 }

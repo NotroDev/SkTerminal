@@ -1,12 +1,21 @@
 ﻿using Avalonia.Media;
 using System;
+using Iciclecreek.Terminal;
 using XTerm.Buffer;
 
 namespace Iciclecreek.Avalonia.Terminal
 {
     public static class BufferCellExtensions
     {
-        public static ConsolePalette ActivePalette { get; set; } = ConsolePalette.CreateDefault();
+        public static ConsolePalette ActivePalette
+        {
+            get => field;
+            set
+            {
+                field = value;
+                TerminalView.ClearAllCaches();
+            }
+        } = ConsolePalette.CreateDefault();
 
         public static FontWeight GetFontWeight(this BufferCell cell)
         {
