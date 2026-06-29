@@ -1914,6 +1914,18 @@ namespace Iciclecreek.Terminal
         public async Task LaunchProcess()
         {
             CleanupProcess();
+            
+            lock (_terminalLock)
+            {
+                _terminal.Write("\x1bc"); 
+                
+                var currentScrollback = _terminal.Options.Scrollback;
+                _terminal.Options.Scrollback = 0;
+                _terminal.Options.Scrollback = currentScrollback;
+
+                ClearCache();
+            }
+            this.RequestInvalidate();
 
             try
             {
@@ -3146,5 +3158,37 @@ namespace Iciclecreek.Terminal
         }
 
         #endregion
+        
+        public async Task ClearAsync()
+        {
+            lock (_terminalLock)
+            {
+                _terminal.ClearScrollback();
+        
+                ClearCache();
+            }
+            
+            Dispatcher.UIThread.Post(() =>
+            {
+                RaisePropertyChanged(MaxScrollbackProperty, default(int), MaxScrollback);
+                RaisePropertyChanged(ViewportYProperty, default(int), ViewportY);
+                this.RequestInvalidate();
+            });
+
+            if (_ptyConnection != null)
+            {
+                string processName = Process ?? string.Empty;
+        
+                if (processName.EndsWith("cmd.exe", StringComparison.OrdinalIgnoreCase) || 
+                    processName.EndsWith("cmd", StringComparison.OrdinalIgnoreCase))
+                {
+                    await SendToPtyAsync("cls\r");
+                }
+                else
+                {
+                    await SendToPtyAsync("\x0C"); // Ctrl+L (Form Feed)
+                }
+            }
+        }
     }
 }

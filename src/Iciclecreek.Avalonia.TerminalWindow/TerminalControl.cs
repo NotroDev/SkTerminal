@@ -371,5 +371,10 @@ namespace Iciclecreek.Terminal
             _scrollBar.Value = currentScroll;
             _scrollBar.IsVisible = maxScrollback > 0;
         }
+        
+        /// <summary>
+        /// Clears the terminal screen and scrollback buffer.
+        /// </summary>
+        public Task ClearAsync() => _terminalView?.ClearAsync() ?? Task.CompletedTask;
     }
 }
