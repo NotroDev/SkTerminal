@@ -120,6 +120,11 @@ namespace Iciclecreek.Terminal
             AvaloniaProperty.Register<TerminalView, TextDecorationLocation?>(
                 nameof(TextDecorations),
                 defaultValue: null);
+        
+        public static readonly StyledProperty<FontFeatureCollection> FontFeaturesProperty =
+            AvaloniaProperty.Register<TerminalView, FontFeatureCollection>(
+                nameof(FontFeatures),
+                defaultValue: null);
 
         public static readonly StyledProperty<IBrush> ForegroundProperty =
             AvaloniaProperty.Register<TerminalView, IBrush>(
@@ -390,6 +395,7 @@ namespace Iciclecreek.Terminal
                 FontStyleProperty,
                 FontWeightProperty,
                 TextDecorationsProperty,
+                FontFeaturesProperty,
                 ForegroundProperty,
                 BackgroundProperty,
                 SelectionBrushProperty,
@@ -404,6 +410,7 @@ namespace Iciclecreek.Terminal
                 FontSizeProperty,
                 FontStyleProperty,
                 FontWeightProperty,
+                FontFeaturesProperty,
                 BufferSizeProperty);
 
             FocusableProperty.OverrideDefaultValue<TerminalView>(true);
@@ -647,6 +654,15 @@ namespace Iciclecreek.Terminal
         {
             get => GetValue(TextDecorationsProperty);
             set => SetValue(TextDecorationsProperty, value);
+        }
+
+        /// <summary>
+        /// Gets or sets the font feature collection applied to terminal text.
+        /// </summary>
+        public FontFeatureCollection FontFeatures
+        {
+            get => GetValue(FontFeaturesProperty);
+            set => SetValue(FontFeaturesProperty, value);
         }
 
         /// <summary>
@@ -2096,6 +2112,7 @@ namespace Iciclecreek.Terminal
                 typeface,
                 FontSize,
                 Brushes.Black);
+            _measureText.SetFontFeatures(FontFeatures);
 
             _charWidth = _measureText.Width;
             _charHeight = _measureText.Height;
@@ -2280,6 +2297,8 @@ namespace Iciclecreek.Terminal
                 var td = cell.GetTextDecorations();
                 if (td != null)
                     formattedText.SetTextDecorations(td);
+                
+                formattedText.SetFontFeatures(FontFeatures);
 
                 var position = new Point(startX, startYPos);
                 // Cache only content-dependent data, not screen position
@@ -2391,6 +2410,8 @@ namespace Iciclecreek.Terminal
                         var td = cell.GetTextDecorations();
                         if (td != null)
                             formattedText.SetTextDecorations(td);
+                        
+                        formattedText.SetFontFeatures(FontFeatures);
 
                         var position = new Point(startX, startYPos);
 
@@ -2511,6 +2532,7 @@ namespace Iciclecreek.Terminal
                                 typeface,
                                 FontSize,
                                 invertedBrush);
+                            formattedText.SetFontFeatures(FontFeatures);
                             context.DrawText(formattedText, new Point(posX, posY));
                         }
                     }
@@ -2580,6 +2602,8 @@ namespace Iciclecreek.Terminal
                 typeface,
                 FontSize,
                 foreground);
+            
+            formattedText.SetFontFeatures(FontFeatures);
 
             double textWidth = formattedText.Width;
 

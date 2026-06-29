@@ -12,6 +12,7 @@
                     <local:TerminalView Name="PART_TerminalView"
                                        FontFamily="{TemplateBinding FontFamily}"
                                        FontSize="{TemplateBinding FontSize}"
+                                       FontFeatures="{TemplateBinding FontFeatures}"
                                        FontStyle="{TemplateBinding FontStyle}"
                                        FontWeight="{TemplateBinding FontWeight}"
                                        Foreground="{TemplateBinding Foreground}"
