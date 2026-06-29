@@ -2134,56 +2134,59 @@ namespace Iciclecreek.Terminal
 
         public override void Render(DrawingContext context)
         {
-            var scale = TopLevel.GetTopLevel(this)?.RenderScaling ?? 1.0;
-            //Debug.WriteLine("======");
-            //Debug.WriteLine(_terminal.Buffer.PrintViewport());
-
-            // Use the terminal buffer's ViewportY to determine what to render
-            int viewportY = _terminal.Buffer.ViewportY;
-            int viewportLines = _terminal.Rows;
-            int startLine = viewportY;
-            int endLine = Math.Min(_terminal.Buffer.Length, startLine + viewportLines);
-            try
+            lock (_terminalLock)
             {
+                var scale = TopLevel.GetTopLevel(this)?.RenderScaling ?? 1.0;
+                //Debug.WriteLine("======");
+                //Debug.WriteLine(_terminal.Buffer.PrintViewport());
 
-                for (int y = startLine; y < endLine; y++)
+                // Use the terminal buffer's ViewportY to determine what to render
+                int viewportY = _terminal.Buffer.ViewportY;
+                int viewportLines = _terminal.Rows;
+                int startLine = viewportY;
+                int endLine = Math.Min(_terminal.Buffer.Length, startLine + viewportLines);
+                
+                try
                 {
-                    var line = _terminal.Buffer.GetLine(y);
-                    if (line == null)
-                        continue;
-
-                    int screenY = y - startLine;
-
-                    // Calculate Y positions for this screen row
-                    var startYPos = Snap(screenY * _charHeight, scale);
-                    var endYPos = Snap((screenY + 1) * _charHeight, scale);
-                    var rowHeight = Math.Max(0, endYPos - startYPos);
-
-                    // Check for double-width/double-height line attributes
-                    var lineAttr = line.LineAttribute;
-                    if (lineAttr == LineAttribute.DoubleWidth ||
-                             lineAttr == LineAttribute.DoubleHeightTop ||
-                             lineAttr == LineAttribute.DoubleHeightBottom)
+                    for (int y = startLine; y < endLine; y++)
                     {
-                        RenderDoubleWidthLine(context, line, screenY, startYPos, rowHeight, lineAttr, scale);
+                        var line = _terminal.Buffer.GetLine(y);
+                        if (line == null)
+                            continue;
+
+                        int screenY = y - startLine;
+
+                        // Calculate Y positions for this screen row
+                        var startYPos = Snap(screenY * _charHeight, scale);
+                        var endYPos = Snap((screenY + 1) * _charHeight, scale);
+                        var rowHeight = Math.Max(0, endYPos - startYPos);
+
+                        // Check for double-width/double-height line attributes
+                        var lineAttr = line.LineAttribute;
+                        if (lineAttr == LineAttribute.DoubleWidth ||
+                                 lineAttr == LineAttribute.DoubleHeightTop ||
+                                 lineAttr == LineAttribute.DoubleHeightBottom)
+                        {
+                            RenderDoubleWidthLine(context, line, screenY, startYPos, rowHeight, lineAttr, scale);
+                        }
+                        else
+                        {
+                            RenderNormalLine(context, line, screenY, startYPos, rowHeight, scale);
+                        }
                     }
-                    else
-                    {
-                        RenderNormalLine(context, line, screenY, startYPos, rowHeight, scale);
-                    }
+
+                    // Render selection overlay
+                    RenderSelection(context, viewportY, scale);
+
+                    RenderCursor(context, viewportY, scale);
+
+                    // Render IME preedit (composition) text overlay
+                    RenderPreeditText(context, viewportY, scale);
                 }
-
-                // Render selection overlay
-                RenderSelection(context, viewportY, scale);
-
-                RenderCursor(context, viewportY, scale);
-
-                // Render IME preedit (composition) text overlay
-                RenderPreeditText(context, viewportY, scale);
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"[TerminalView] Render error: {ex.Message}");
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"[TerminalView] Render error: {ex.Message}");
+                }
             }
         }
 
