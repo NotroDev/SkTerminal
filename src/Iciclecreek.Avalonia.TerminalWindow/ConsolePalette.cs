@@ -45,10 +45,10 @@ namespace Iciclecreek.Avalonia.Terminal
             this[AnsiColor.Cyan, false] = Color.FromRgb(0, 197, 202);
             this[AnsiColor.White, false] = Color.FromRgb(238, 238, 238);
 
-            this[AnsiColor.BrightBlack, false] = Color.FromRgb(75, 81, 98);
+            this[AnsiColor.BrightBlack, false] = Color.FromRgb(158, 158, 158);
             this[AnsiColor.BrightRed, false] = Color.FromRgb(255, 107, 107);
             this[AnsiColor.BrightGreen, false] = Color.FromRgb(99, 230, 190);
-            this[AnsiColor.BrightYellow, false] = Color.FromRgb(255, 212, 59);
+            this[AnsiColor.BrightYellow, false] = Color.FromRgb(249, 241, 165);
             this[AnsiColor.BrightBlue, false] = Color.FromRgb(116, 192, 252);
             this[AnsiColor.BrightMagenta, false] = Color.FromRgb(228, 190, 254);
             this[AnsiColor.BrightCyan, false] = Color.FromRgb(150, 242, 244);
