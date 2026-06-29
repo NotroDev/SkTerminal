@@ -1555,9 +1555,26 @@ namespace Iciclecreek.Terminal
 
         private void OnTerminalTitleChanged(object? sender, XT.Events.TerminalEvents.TitleChangeEventArgs e)
         {
+            if (e.Title != null && e.Title.StartsWith("__CLEAR_SCROLLBACK__"))
+            {
+                Dispatcher.UIThread.Post(() =>
+                {
+                    lock (_terminalLock)
+                    {
+                        _terminal.ClearScrollback();
+                        ClearCache();
+                    }
+                    
+                    RaisePropertyChanged(MaxScrollbackProperty, default(int), MaxScrollback);
+                    RaisePropertyChanged(ViewportYProperty, default(int), ViewportY);
+                    this.RequestInvalidate();
+                });
+                
+                return;
+            }
+
             Dispatcher.UIThread.Post(() =>
             {
-
                 var args = new TitleChangedEventArgs(e.Title)
                 {
                     RoutedEvent = TitleChangedEvent
