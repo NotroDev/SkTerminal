@@ -2045,6 +2045,8 @@ namespace Iciclecreek.Terminal
                     var oldMax = MaxScrollback;
                     var oldY = _terminal.Buffer.ViewportY;
 
+                    bool wasAtBottom = oldY >= oldMax;
+                    
                     lock (_terminalLock)
                     {
                         _terminal.Write(output);
@@ -2053,7 +2055,7 @@ namespace Iciclecreek.Terminal
                     // Auto-scroll to bottom when new content arrives, but only in normal buffer.
                     // Alternate buffer (used by full-screen apps like vim, htop, asciiquarium)
                     // handles its own cursor positioning and shouldn't be scrolled.
-                    if (!_isAlternateBuffer)
+                    if (!_isAlternateBuffer && wasAtBottom)
                     {
                         _terminal.Buffer.ScrollToBottom();
                         var newY = _terminal.Buffer.ViewportY;
@@ -2067,6 +2069,17 @@ namespace Iciclecreek.Terminal
                                     RaisePropertyChanged(MaxScrollbackProperty, oldMax, newMax);
                                 if (oldY != newY)
                                     RaisePropertyChanged(ViewportYProperty, oldY, newY);
+                            });
+                        }
+                    }
+                    else if (!_isAlternateBuffer && !wasAtBottom)
+                    {
+                        var newMax = MaxScrollback;
+                        if (oldMax != newMax)
+                        {
+                            Dispatcher.UIThread.Post(() =>
+                            {
+                                RaisePropertyChanged(MaxScrollbackProperty, oldMax, newMax);
                             });
                         }
                     }
@@ -2179,21 +2192,31 @@ namespace Iciclecreek.Terminal
                 // Only resize if dimensions have changed
                 if (newCols != _terminal.Cols || newRows != _terminal.Rows)
                 {
-                    var oldMax = MaxScrollback;
-                    var oldY = ViewportY;
-
                     lock (_terminalLock)
                     {
+                        var oldMax = MaxScrollback;
+                        var oldY = ViewportY;
+                    
+                        int offsetFromBottom = Math.Max(0, oldMax - oldY);
+                        bool wasAtBottom = (offsetFromBottom == 0);
+                        
                         _terminal.Resize(newCols, newRows);
                         ClearCache();
+                        
+                        // Also resize the PTY connection if it exists
+                        _ptyConnection?.Resize(newCols, newRows);
+                    
+                        var newMax = MaxScrollback;
+                        int targetY = wasAtBottom 
+                            ? newMax 
+                            : Math.Clamp(oldY, 0, newMax);
+                    
+                        ViewportY = targetY;
+                        
+                        RaisePropertyChanged(ViewportLinesProperty, default(int), ViewportLines);
+                        RaisePropertyChanged(MaxScrollbackProperty, oldMax, newMax);
+                        RaisePropertyChanged(ViewportYProperty, oldY, ViewportY);
                     }
-
-                    // Also resize the PTY connection if it exists
-                    _ptyConnection?.Resize(newCols, newRows);
-
-                    RaisePropertyChanged(ViewportLinesProperty, default(int), ViewportLines);
-                    RaisePropertyChanged(MaxScrollbackProperty, oldMax, MaxScrollback);
-                    RaisePropertyChanged(ViewportYProperty, oldY, ViewportY);
                 }
             }
 
