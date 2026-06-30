@@ -1933,7 +1933,7 @@ namespace Iciclecreek.Terminal
             
             lock (_terminalLock)
             {
-                _terminal.Write("\x1bc"); 
+                _terminal.Write("\e\x63"); 
                 
                 var currentScrollback = _terminal.Options.Scrollback;
                 _terminal.Options.Scrollback = 0;
