@@ -2179,12 +2179,21 @@ namespace Iciclecreek.Terminal
                 // Only resize if dimensions have changed
                 if (newCols != _terminal.Cols || newRows != _terminal.Rows)
                 {
-                    _terminal.Resize(newCols, newRows);
+                    var oldMax = MaxScrollback;
+                    var oldY = ViewportY;
+
+                    lock (_terminalLock)
+                    {
+                        _terminal.Resize(newCols, newRows);
+                        ClearCache();
+                    }
 
                     // Also resize the PTY connection if it exists
                     _ptyConnection?.Resize(newCols, newRows);
 
                     RaisePropertyChanged(ViewportLinesProperty, default(int), ViewportLines);
+                    RaisePropertyChanged(MaxScrollbackProperty, oldMax, MaxScrollback);
+                    RaisePropertyChanged(ViewportYProperty, oldY, ViewportY);
                 }
             }
 
