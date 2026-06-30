@@ -424,8 +424,6 @@ namespace Iciclecreek.Terminal
             Loaded += OnLoaded;
             Unloaded += OnUnloaded;
             TextInputMethodClientRequested += OnTextInputMethodClientRequested;
-            
-            RegisterActiveView(this);
         }
 
         protected override void OnInitialized()
@@ -473,6 +471,8 @@ namespace Iciclecreek.Terminal
 
             // Initialize IME client
             _inputMethodClient = new TerminalInputMethodClient(this);
+            
+            RegisterActiveView(this);
         }
 
         private void OnTerminalDirectoryChanged(object? sender, TerminalEvents.DirectoryChangeEventArgs e)
@@ -832,8 +832,6 @@ namespace Iciclecreek.Terminal
             _cursorBlinkTimer.Stop();
             _isSelecting = false;
             _pendingSelectionStart = null;
-            
-            UnregisterActiveView(this);
         }
 
         /// <summary>
@@ -852,6 +850,7 @@ namespace Iciclecreek.Terminal
         protected override void OnDetachedFromLogicalTree(LogicalTreeAttachmentEventArgs e)
         {
             base.OnDetachedFromLogicalTree(e);
+            UnregisterActiveView(this);
 
             _terminal.DataReceived -= OnTerminalDataReceived;
             _terminal.BufferChanged -= OnTerminalBufferChanged;
@@ -3119,7 +3118,10 @@ namespace Iciclecreek.Terminal
         {
             lock (_activeViews)
             {
-                _activeViews.Add(new WeakReference<TerminalView>(view));
+                if (!_activeViews.Any(wr => wr.TryGetTarget(out var target) && target == view))
+                {
+                    _activeViews.Add(new WeakReference<TerminalView>(view));
+                }
             }
         }
 
