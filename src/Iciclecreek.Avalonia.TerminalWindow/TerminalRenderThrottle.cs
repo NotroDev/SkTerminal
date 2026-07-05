@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Threading;
 
@@ -35,11 +36,13 @@ public static class TerminalRenderThrottle
             Pending.Add(control);
         }
 
-        if (!_frameScheduled)
+        if (_frameScheduled)
         {
-            _frameScheduled = true;
-            ScheduleFrame();
+            return;
         }
+
+        _frameScheduled = true;
+        ScheduleFrame();
     }
 
     private static void ScheduleFrame()
@@ -57,7 +60,13 @@ public static class TerminalRenderThrottle
         // Otherwise schedule a delayed flush
         TimeSpan delay = FrameInterval - elapsed;
 
-        DispatcherTimer.RunOnce(Flush, delay);
+        _ = ScheduleDelayedFlush(delay);
+    }
+    
+    private static async Task ScheduleDelayedFlush(TimeSpan delay)
+    {
+        await Task.Delay(delay);
+        Dispatcher.UIThread.Post(Flush);
     }
 
     private static void Flush()
