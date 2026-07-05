@@ -1,20 +1,12 @@
 using Avalonia.Interactivity;
-using System;
 
-namespace Iciclecreek.Terminal
+namespace Iciclecreek.Terminal;
+
+/// <summary>
+///     EventArgs for the WindowMoved event.
+/// </summary>
+public class WindowMovedEventArgs(int x, int y) : RoutedEventArgs
 {
-    /// <summary>
-    /// EventArgs for the WindowMoved event.
-    /// </summary>
-    public class WindowMovedEventArgs : RoutedEventArgs
-    {
-        public int X { get; }
-        public int Y { get; }
-
-        public WindowMovedEventArgs(int x, int y)
-        {
-            X = x;
-            Y = y;
-        }
-    }
+    public int X { get; } = x;
+    public int Y { get; } = y;
 }

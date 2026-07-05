@@ -1,82 +1,83 @@
-﻿using Avalonia.Controls;
-using Avalonia.Threading;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
+using Avalonia.Controls;
+using Avalonia.Threading;
 
-namespace Iciclecreek.Terminal
+namespace Iciclecreek.Terminal;
+
+/// <summary>
+///     Synchronizes control invalidation to a target frame rate, so all terminals get invalidated together.
+/// </summary>
+public static class TerminalRenderThrottle
 {
+    // Target frame rate
+    private static readonly TimeSpan FrameInterval = TimeSpan.FromMilliseconds(8);
+
+    // Controls waiting to be invalidated
+    private static readonly HashSet<Control> Pending = [];
+
+    // State
+    private static bool _frameScheduled;
+    private static DateTime _lastFrame = DateTime.MinValue;
 
     /// <summary>
-    /// Synchronizes control invalidation to a target frame rate, so all terminals get invalidated together.
+    ///     Request that a control be invalidated on the next coordinated frame.
     /// </summary>
-    public static class TerminalRenderThrottle
+    public static void RequestInvalidate(this Control control)
     {
-        // Target frame rate
-        private static readonly TimeSpan FrameInterval = TimeSpan.FromMilliseconds(8);
-
-        // Controls waiting to be invalidated
-        private static readonly HashSet<Control> Pending = new();
-
-        // State
-        private static bool _frameScheduled;
-        private static DateTime _lastFrame = DateTime.MinValue;
-
-        /// <summary>
-        /// Request that a control be invalidated on the next coordinated frame.
-        /// </summary>
-        public static void RequestInvalidate(this Control control)
+        if (control == null)
         {
-            if (control == null)
-                return;
-
-            lock (Pending)
-                Pending.Add(control);
-
-            if (!_frameScheduled)
-            {
-                _frameScheduled = true;
-                ScheduleFrame();
-            }
+            return;
         }
 
-        private static void ScheduleFrame()
+        lock (Pending)
         {
-            var now = DateTime.UtcNow;
-            var elapsed = now - _lastFrame;
+            Pending.Add(control);
+        }
 
-            // If enough time has passed, flush immediately on the UI thread
-            if (elapsed >= FrameInterval)
+        if (!_frameScheduled)
+        {
+            _frameScheduled = true;
+            ScheduleFrame();
+        }
+    }
+
+    private static void ScheduleFrame()
+    {
+        DateTime now = DateTime.UtcNow;
+        TimeSpan elapsed = now - _lastFrame;
+
+        // If enough time has passed, flush immediately on the UI thread
+        if (elapsed >= FrameInterval)
+        {
+            Dispatcher.UIThread.Post(Flush);
+            return;
+        }
+
+        // Otherwise schedule a delayed flush
+        TimeSpan delay = FrameInterval - elapsed;
+
+        DispatcherTimer.RunOnce(Flush, delay);
+    }
+
+    private static void Flush()
+    {
+        _frameScheduled = false;
+        _lastFrame = DateTime.UtcNow;
+
+        lock (Pending)
+        {
+            if (Pending.Count == 0)
             {
-                Dispatcher.UIThread.Post(Flush);
                 return;
             }
 
-            // Otherwise schedule a delayed flush
-            var delay = FrameInterval - elapsed;
-
-            Dispatcher.UIThread.Post(async () =>
+            foreach (Control control in Pending)
             {
-                await Task.Delay(delay);
-                Flush();
-            });
-        }
-
-        private static void Flush()
-        {
-            _frameScheduled = false;
-            _lastFrame = DateTime.UtcNow;
-
-            lock (Pending)
-            {
-                if (Pending.Count == 0)
-                    return;
-
-                foreach (var control in Pending)
-                    control.InvalidateVisual();
-
-                Pending.Clear();
+                control.InvalidateVisual();
             }
+
+            Pending.Clear();
         }
     }
 }

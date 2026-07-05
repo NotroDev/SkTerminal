@@ -1,123 +1,129 @@
 ﻿using Avalonia.Media;
-using System;
 using Iciclecreek.Terminal;
 using XTerm.Buffer;
 
-namespace Iciclecreek.Avalonia.Terminal
-{
-    public static class BufferCellExtensions
-    {
-        public static ConsolePalette ActivePalette
-        {
-            get => field;
-            set
-            {
-                field = value;
-                TerminalView.ClearAllCaches();
-            }
-        } = ConsolePalette.CreateDefault();
+namespace Iciclecreek.Avalonia.Terminal;
 
-        public static FontWeight GetFontWeight(this BufferCell cell)
+public static class BufferCellExtensions
+{
+    public static ConsolePalette ActivePalette
+    {
+        get;
+        set
+        {
+            field = value;
+            TerminalView.ClearAllCaches();
+        }
+    } = ConsolePalette.CreateDefault();
+
+    extension(BufferCell cell)
+    {
+        public FontWeight GetFontWeight()
         {
             if (cell.Attributes.IsBold())
+            {
                 return FontWeight.Bold;
-            if (cell.Attributes.IsDim())
-                return FontWeight.Thin;
-            return FontWeight.Normal;
+            }
+
+            return cell.Attributes.IsDim() ? FontWeight.Thin : FontWeight.Normal;
         }
 
-        public static FontStyle GetFontStyle(this BufferCell cell)
+        public FontStyle GetFontStyle()
         {
-            if (cell.Attributes.IsItalic())
-                return FontStyle.Italic;
-            return FontStyle.Normal;
+            return cell.Attributes.IsItalic() ? FontStyle.Italic : FontStyle.Normal;
         }
 
-        public static TextDecorationCollection? GetTextDecorations(this BufferCell cell)
+        public TextDecorationCollection? GetTextDecorations()
         {
             if (cell.Attributes.IsUnderline())
+            {
                 return TextDecorations.Underline;
+            }
+
             if (cell.Attributes.IsStrikethrough())
+            {
                 return TextDecorations.Strikethrough;
-            if (cell.Attributes.IsOverline())
-                return TextDecorations.Overline;
-            return null;
+            }
+
+            return cell.Attributes.IsOverline() ? TextDecorations.Overline : null;
         }
 
         /// <summary>
-        /// Gets the background color as RGB values.
-        /// Returns null if using default color or palette mode.
+        ///     Gets the background color as RGB values.
+        ///     Returns null if using default color or palette mode.
         /// </summary>
         /// <returns>A tuple (R, G, B) with RGB values 0-255, or null if not using RGB mode.</returns>
-        public static Color? GetBackgroundColor(this BufferCell cell)
+        public Color? GetBackgroundColor()
         {
-            var color = cell.Attributes.GetBgColor();
-            var mode = cell.Attributes.GetBgColorMode();
+            int color = cell.Attributes.GetBgColor();
+            int mode = cell.Attributes.GetBgColorMode();
 
-            if (color == 257) return null;  // Default color
-
-            return cell.ExtractColor(color, mode, isBackground: true);
+            return color == 257
+                ? null
+                : BufferCell.ExtractColor(color, mode, true);
         }
 
-        public static IBrush GetBackgroundBrush(this BufferCell cell, IBrush defaultBrush)
+        public IBrush GetBackgroundBrush(IBrush defaultBrush)
         {
-            var bgColor = cell.GetBackgroundColor();
+            Color? bgColor = cell.GetBackgroundColor();
             if (bgColor.HasValue)
             {
                 return new SolidColorBrush(bgColor.Value);
             }
+
             return defaultBrush;
         }
 
         /// <summary>
-        /// Gets the foreground color as RGB values.
-        /// Returns null if using default color or palette mode.
+        ///     Gets the foreground color as RGB values.
+        ///     Returns null if using default color or palette mode.
         /// </summary>
         /// <returns>A tuple (R, G, B) with RGB values 0-255, or null if not using RGB mode.</returns>
-        public static Color? GetForegroundColor(this BufferCell cell)
+        public Color? GetForegroundColor()
         {
-            var color = cell.Attributes.GetFgColor();
-            var mode = cell.Attributes.GetFgColorMode();
-            if (color == 256)
-                return null;
-
-            return cell.ExtractColor(color, mode, isBackground: false);
+            int color = cell.Attributes.GetFgColor();
+            int mode = cell.Attributes.GetFgColorMode();
+            return color == 256 
+                ? null 
+                : BufferCell.ExtractColor(color, mode, false);
         }
 
-        public static IBrush GetForegroundBrush(this BufferCell cell, IBrush defaultBrush)
+        public IBrush GetForegroundBrush(IBrush defaultBrush)
         {
-            var fgColor = cell.GetForegroundColor();
-            if (fgColor.HasValue)
+            Color? fgColor = cell.GetForegroundColor();
+            if (!fgColor.HasValue)
             {
-                if (cell.Attributes.IsDim())
-                    return new SolidColorBrush(fgColor.Value, 0.5);
-            
-                return new SolidColorBrush(fgColor.Value);
+                return defaultBrush;
             }
-            return defaultBrush;
+
+            return cell.Attributes.IsDim() 
+                ? new SolidColorBrush(fgColor.Value, 0.5) 
+                : new SolidColorBrush(fgColor.Value);
         }
 
-        private static Color? ExtractColor(this BufferCell cell, int color, int mode, bool isBackground)
+        private static Color? ExtractColor(int color, int mode, bool isBackground)
         {
-            if (mode == 1)
+            if (mode != 1)
             {
-                int r = (color >> 16) & 0xFF;
-                int g = (color >> 8) & 0xFF;
-                int b = color & 0xFF;
-                return Color.FromRgb((byte)r, (byte)g, (byte)b);
+                return PalleteToColor(color, isBackground);
             }
-            
-            return PalleteToColor(color, isBackground);
-        }
-        
-        private static Color PalleteToColor(int paletteIndex, bool isBackground)
-        {
-            if (paletteIndex < 0 || paletteIndex >= 256)
-                return Colors.White;
 
-            return isBackground 
-                ? ActivePalette.BgPalette[paletteIndex] 
-                : ActivePalette.FgPalette[paletteIndex];
+            int r = (color >> 16) & 0xFF;
+            int g = (color >> 8) & 0xFF;
+            int b = color & 0xFF;
+            return Color.FromRgb((byte)r, (byte)g, (byte)b);
         }
+    }
+
+    private static Color PalleteToColor(int paletteIndex, bool isBackground)
+    {
+        if (paletteIndex is < 0 or >= 256)
+        {
+            return Colors.White;
+        }
+
+        return isBackground
+            ? ActivePalette.BgPalette[paletteIndex]
+            : ActivePalette.FgPalette[paletteIndex];
     }
 }
