@@ -13,10 +13,10 @@
 
     <ItemGroup>
         <PackageReference Include="Avalonia" Version="12.0.5" />
-        <PackageReference Include="Porta.Pty" Version="1.0.7" />
         <PackageReference Include="Unicode.net" Version="2.0.0" />
         <PackageReference Include="Wcwidth" Version="4.0.1" />
 
         <ProjectReference Include="..\XTerm.NET\src\XTerm.NET\XTerm.NET.csproj" />
+        <ProjectReference Include="..\Porta.Pty\src\Porta.Pty\Porta.Pty.csproj" />
     </ItemGroup>
 </Project>

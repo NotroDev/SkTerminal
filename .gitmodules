@@ -1,3 +1,6 @@
 [submodule "src/XTerm.NET"]
 	path = src/XTerm.NET
 	url = https://github.com/NotroDev/SkXTerm
+[submodule "src/Porta.Pty"]
+	path = src/Porta.Pty
+	url = https://github.com/NotroDev/Porta.Pty.git
