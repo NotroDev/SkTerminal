@@ -1,1 +1,0 @@
-A fork of [Iciclecreek.Avalonia.Terminal](https://github.com/tomlm/Iciclecreek.Avalonia.Terminal) with some fixes and improvements
