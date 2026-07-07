@@ -1,5 +1,4 @@
 <Solution>
     <Project Path="SkTerminal/SkTerminal.csproj" />
-    <Project Path="Porta.Pty/src/Porta.Pty/Porta.Pty.csproj" />
     <Project Path="XTerm.NET/src/XTerm.NET/XTerm.NET.csproj" />
 </Solution>
