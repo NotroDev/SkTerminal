@@ -18,6 +18,7 @@ using Avalonia.Media;
 using Avalonia.Threading;
 using Iciclecreek.Avalonia.Terminal;
 using Porta.Pty;
+using SkTerminal;
 using XTerm.Buffer;
 using XTerm.Common;
 using XTerm.Events;

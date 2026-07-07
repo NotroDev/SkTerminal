@@ -1,5 +1,5 @@
 <Solution>
-    <Project Path="Iciclecreek.Avalonia.TerminalWindow/Iciclecreek.Avalonia.Terminal.csproj" />
+    <Project Path="SkTerminal/SkTerminal.csproj" />
     <Project Path="Porta.Pty/src/Porta.Pty/Porta.Pty.csproj" />
     <Project Path="XTerm.NET/src/XTerm.NET/XTerm.NET.csproj" />
 </Solution>

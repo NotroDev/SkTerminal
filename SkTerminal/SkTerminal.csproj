@@ -6,6 +6,7 @@
         <RootNamespace>Iciclecreek.TerminalWindow</RootNamespace>
         <IsAotCompatible>true</IsAotCompatible>
         <IsTrimmable>true</IsTrimmable>
+        <PackageId>SkTerminal</PackageId>
     </PropertyGroup>
 
     <ItemGroup>
